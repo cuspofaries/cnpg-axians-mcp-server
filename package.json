@@ -1,0 +1,52 @@
+{
+  "name": "@cnpg/axians-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for CloudNativePG PostgreSQL cluster management by Axians",
+  "main": "dist/index.js",
+  "bin": {
+    "cnpg-axians-mcp-server": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@kubernetes/client-node": "^0.21.0",
+    "@modelcontextprotocol/sdk": "^0.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "mcp", 
+    "kubernetes", 
+    "cnpg", 
+    "postgresql", 
+    "claude", 
+    "model-context-protocol",
+    "anthropic",
+    "axians"
+  ],
+  "author": "Anthony Macle <anthony.macle@axians.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cuspofaries/cnpg-axians-mcp-server"
+  },
+  "homepage": "https://github.com/cuspofaries/cnpg-axians-mcp-server#readme",
+  "bugs": {
+    "url": "https://github.com/cuspofaries/cnpg-axians-mcp-server/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "package.json"
+  ]
+}
