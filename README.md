@@ -24,7 +24,7 @@ Add this to your claude_desktop_config.json:
   "mcpServers": {
     "cnpg": {
       "command": "npx",
-      "args": ["@cnpg/axians-mcp-server"],
+      "args": ["@cuspofaries/axians-mcp-server"],
       "env": {
         "K8S_API_URL": "https://your-k8s-api-server.com",
         "K8S_TOKEN": "your_bearer_token_here"
@@ -70,7 +70,7 @@ Once configured, you can ask Claude:
 
 ```bash
 # Test the server locally
-npx @cnpg/axians-mcp-server
+npx @cuspofaries/axians-mcp-server
 ```
 
 ### Advanced Configuration
@@ -80,7 +80,7 @@ npx @cnpg/axians-mcp-server
   "mcpServers": {
     "cnpg-production": {
       "command": "npx",
-      "args": ["@cnpg/axians-mcp-server"],
+      "args": ["@cuspofaries/axians-mcp-server"],
       "env": {
         "K8S_API_URL": "https://prod-k8s.company.com",
         "K8S_TOKEN": "prod_token_here"
@@ -88,7 +88,7 @@ npx @cnpg/axians-mcp-server
     },
     "cnpg-staging": {
       "command": "npx", 
-      "args": ["@cnpg/axians-mcp-server"],
+      "args": ["@cuspofaries/axians-mcp-server"],
       "env": {
         "K8S_API_URL": "https://staging-k8s.company.com",
         "K8S_TOKEN": "staging_token_here"
@@ -159,7 +159,7 @@ type: kubernetes.io/service-account-token
 ## Development
 
 ```bash
-git clone https://github.com/anthony-macle/cnpg-axians-mcp-server.git
+git clone https://github.com/cuspofaries/cnpg-axians-mcp-server.git
 cd cnpg-axians-mcp-server
 npm install
 npm run build
@@ -176,8 +176,8 @@ This project is developed by Axians, a VINCI Energies brand, specializing in ICT
 
 ## Support
 
-- Report Issues: https://github.com/anthony-macle/cnpg-axians-mcp-server/issues
-- Discussions: https://github.com/anthony-macle/cnpg-axians-mcp-server/discussions
+- Report Issues: https://github.com/cuspofaries/cnpg-axians-mcp-server/issues
+- Discussions: https://github.com/cuspofaries/cnpg-axians-mcp-server/discussions
 - Email: anthony.macle@axians.com
 
 ## License
