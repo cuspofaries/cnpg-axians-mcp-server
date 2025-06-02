@@ -1,6 +1,6 @@
 {
   "name": "@cuspofaries/axians-mcp-cnpg-server",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "type": "module",
   "description": "MCP server for CloudNativePG PostgreSQL cluster management by Axians",
   "main": "dist/index.js",
