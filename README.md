@@ -24,7 +24,7 @@ Add this to your claude_desktop_config.json:
   "mcpServers": {
     "cnpg": {
       "command": "npx",
-      "args": ["@cuspofaries/axians-mcp-server"],
+      "args": ["@cuspofaries/axians-mcp-cnpg-server"],
       "env": {
         "K8S_API_URL": "https://your-k8s-api-server.com",
         "K8S_TOKEN": "your_bearer_token_here"
@@ -80,7 +80,7 @@ npx @cuspofaries/axians-mcp-server
   "mcpServers": {
     "cnpg-production": {
       "command": "npx",
-      "args": ["@cuspofaries/axians-mcp-server"],
+      "args": ["@cuspofaries/axians-mcp-cnpg-server"],
       "env": {
         "K8S_API_URL": "https://prod-k8s.company.com",
         "K8S_TOKEN": "prod_token_here"
@@ -88,7 +88,7 @@ npx @cuspofaries/axians-mcp-server
     },
     "cnpg-staging": {
       "command": "npx", 
-      "args": ["@cuspofaries/axians-mcp-server"],
+      "args": ["@cuspofaries/axians-mcp-cnpg-server"],
       "env": {
         "K8S_API_URL": "https://staging-k8s.company.com",
         "K8S_TOKEN": "staging_token_here"
