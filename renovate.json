@@ -5,30 +5,26 @@
     "security:openssf-scorecard"
   ],
   "vulnerabilityAlerts": {
-    "enabled": true,
-    "remediateIndirect": true
+    "enabled": true
   },
   "osvVulnerabilityAlerts": true,
   "npm": {
     "transitiveRemediation": true
   },
-  "remediations": {
-    "enabled": true
-  },
   "packageRules": [
     {
+      "description": "Enable vulnerability alerts for all packages",
       "matchPackagePatterns": ["*"],
       "vulnerabilityAlerts": {
         "enabled": true
       }
     },
     {
-      "description": "Pin vulnerable transitive dependencies",
-      "matchCurrentVersion": "!/^0\\./",
-      "vulnerabilityAlerts": {
-        "enabled": true,
-        "remediateIndirect": true
-      }
+      "description": "Auto-merge security patches",
+      "matchUpdateTypes": ["patch"],
+      "matchPackagePatterns": ["*"],
+      "automerge": true,
+      "automergeType": "pr"
     }
   ],
   "prConcurrentLimit": 10,
