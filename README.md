@@ -109,6 +109,13 @@ npx @cnpg/axians-mcp-server
 ### Required RBAC permissions
 
 ```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cnpg-mcp-server
+  namespace: default  # ou le namespace de ton choix
+---
+# 2. ClusterRole avec les permissions nécessaires
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -120,6 +127,33 @@ rules:
 - apiGroups: [""]
   resources: ["pods"]
   verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list"]  # Pour lister les namespaces
+---
+# 3. ClusterRoleBinding pour lier le ServiceAccount au ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cnpg-mcp-server-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cnpg-mcp-reader
+subjects:
+- kind: ServiceAccount
+  name: cnpg-mcp-server
+  namespace: default  # doit correspondre au namespace du ServiceAccount
+---
+# 4. Secret pour le token (optionnel, pour Kubernetes < 1.24)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cnpg-mcp-server-token
+  namespace: default
+  annotations:
+    kubernetes.io/service-account.name: cnpg-mcp-server
+type: kubernetes.io/service-account-token
 ```
 
 ## Development
