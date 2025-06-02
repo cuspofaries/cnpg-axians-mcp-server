@@ -70,7 +70,7 @@ Once configured, you can ask Claude:
 
 ```bash
 # Test the server locally
-npx @cuspofaries/axians-mcp-server
+npx @cuspofaries/axians-mcp-cnpg-server
 ```
 
 ### Advanced Configuration
