@@ -14,6 +14,28 @@ import {
   V1Pod 
 } from '@kubernetes/client-node';
 
+// CNPG API details
+const CNPG_GROUP = "postgresql.cnpg.io";
+const CNPG_VERSION = "v1";
+const CLUSTER_PLURAL = "clusters";
+const BACKUP_PLURAL = "backups";
+const SCHEDULED_BACKUP_PLURAL = "scheduledbackups";
+
+interface ClusterArgs {
+  name: string;
+  namespace: string;
+  instances?: number;
+  storageSize?: string;
+  postgresVersion?: string;
+  storageClass?: string;
+}
+
+interface BackupArgs {
+  clusterName: string;
+  namespace: string;
+  backupName?: string;
+}
+
 class CNPGMCPServer {
   private server: Server;
   private k8sApi!: CoreV1Api;
@@ -21,7 +43,7 @@ class CNPGMCPServer {
 
   constructor() {
     this.server = new Server(
-      { name: 'cnpg-mcp-server', version: '1.0.0' },
+      { name: 'cnpg-mcp-server', version: '1.1.0' },
       { capabilities: { tools: {} } }
     );
 
@@ -90,6 +112,72 @@ class CNPGMCPServer {
             }
           },
           {
+            name: 'create_cluster',
+            description: 'Create a new PostgreSQL cluster',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                name: { type: 'string', description: 'Name of the cluster' },
+                namespace: { type: 'string', description: 'Namespace to create the cluster in' },
+                instances: { type: 'number', description: 'Number of PostgreSQL instances (default: 3)', default: 3 },
+                storageSize: { type: 'string', description: 'Storage size (e.g., "10Gi")', default: '10Gi' },
+                postgresVersion: { type: 'string', description: 'PostgreSQL version (default: "15")', default: '15' },
+                storageClass: { type: 'string', description: 'Storage class name (optional)' }
+              },
+              required: ['name', 'namespace']
+            }
+          },
+          {
+            name: 'delete_cluster',
+            description: 'Delete a PostgreSQL cluster',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                name: { type: 'string', description: 'Name of the cluster to delete' },
+                namespace: { type: 'string', description: 'Namespace of the cluster' }
+              },
+              required: ['name', 'namespace']
+            }
+          },
+          {
+            name: 'scale_cluster',
+            description: 'Scale a PostgreSQL cluster to a different number of instances',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                name: { type: 'string', description: 'Name of the cluster' },
+                namespace: { type: 'string', description: 'Namespace of the cluster' },
+                instances: { type: 'number', description: 'New number of instances' }
+              },
+              required: ['name', 'namespace', 'instances']
+            }
+          },
+          {
+            name: 'create_backup',
+            description: 'Create a manual backup of a PostgreSQL cluster',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                clusterName: { type: 'string', description: 'Name of the cluster to backup' },
+                namespace: { type: 'string', description: 'Namespace of the cluster' },
+                backupName: { type: 'string', description: 'Name for the backup (optional, auto-generated if not provided)' }
+              },
+              required: ['clusterName', 'namespace']
+            }
+          },
+          {
+            name: 'list_backups',
+            description: 'List backups for a cluster or all backups in a namespace',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                namespace: { type: 'string', description: 'Namespace to list backups from' },
+                clusterName: { type: 'string', description: 'Filter backups by cluster name (optional)' }
+              },
+              required: ['namespace']
+            }
+          },
+          {
             name: 'get_cluster_status',
             description: 'Get the current status and health of a PostgreSQL cluster',
             inputSchema: {
@@ -132,6 +220,21 @@ class CNPGMCPServer {
           case 'get_cluster':
             return await this.getCluster((args as any).name, (args as any).namespace);
           
+          case 'create_cluster':
+            return await this.createCluster(args as unknown as ClusterArgs);
+          
+          case 'delete_cluster':
+            return await this.deleteCluster((args as any).name, (args as any).namespace);
+          
+          case 'scale_cluster':
+            return await this.scaleCluster((args as any).name, (args as any).namespace, (args as any).instances);
+          
+          case 'create_backup':
+            return await this.createBackup(args as unknown as BackupArgs);
+          
+          case 'list_backups':
+            return await this.listBackups((args as any).namespace, (args as any).clusterName);
+          
           case 'get_cluster_status':
             return await this.getClusterStatus((args as any).name, (args as any).namespace);
           
@@ -159,19 +262,17 @@ class CNPGMCPServer {
       let response: any;
       
       if (namespace) {
-        // Namespace spécifique
         response = await this.customApi.listNamespacedCustomObject(
-          'postgresql.cnpg.io',
-          'v1',
+          CNPG_GROUP,
+          CNPG_VERSION,
           namespace,
-          'clusters'
+          CLUSTER_PLURAL
         );
       } else {
-        // Tous les namespaces
         response = await this.customApi.listClusterCustomObject(
-          'postgresql.cnpg.io',
-          'v1',
-          'clusters'
+          CNPG_GROUP,
+          CNPG_VERSION,
+          CLUSTER_PLURAL
         );
       }
 
@@ -190,27 +291,23 @@ class CNPGMCPServer {
         };
       }
 
-      const clusterInfo = clusters.map((cluster: any) => {
-        const name = cluster.metadata.name;
-        const ns = cluster.metadata.namespace;
-        const instances = cluster.spec.instances || 'Unknown';
-        const status = cluster.status?.phase || 'Unknown';
-        const readyInstances = cluster.status?.readyInstances || 0;
-        
-        return `• **${name}** (namespace: ${ns})
-  - Instances: ${readyInstances}/${instances} ready
-  - Status: ${status}`;
-      }).join('\n\n');
-
-      const title = namespace 
-        ? `## PostgreSQL Clusters in "${namespace}"`
-        : '## PostgreSQL Clusters (All Namespaces)';
+      const clusterSummary = clusters.map((cluster: any) => ({
+        name: cluster.metadata?.name || 'unknown',
+        namespace: cluster.metadata?.namespace || 'unknown',
+        instances: cluster.spec?.instances || 0,
+        postgresVersion: cluster.spec?.postgresql?.parameters?.["postgres-version"] ||
+                        cluster.spec?.imageName ||
+                        'unknown',
+        status: cluster.status?.phase || "Unknown",
+        readyInstances: cluster.status?.readyInstances || 0,
+        primary: cluster.status?.currentPrimary || 'unknown'
+      }));
 
       return {
         content: [
           {
             type: 'text',
-            text: `${title}\n\n${clusterInfo}`
+            text: `Found ${clusters.length} PostgreSQL clusters:\n\n${JSON.stringify(clusterSummary, null, 2)}`
           }
         ]
       };
@@ -222,10 +319,10 @@ class CNPGMCPServer {
   private async getCluster(name: string, namespace: string) {
     try {
       const response = await this.customApi.getNamespacedCustomObject(
-        'postgresql.cnpg.io',
-        'v1',
+        CNPG_GROUP,
+        CNPG_VERSION,
         namespace,
-        'clusters',
+        CLUSTER_PLURAL,
         name
       );
 
@@ -244,35 +341,239 @@ class CNPGMCPServer {
     }
   }
 
-  private async getClusterStatus(name: string, namespace: string) {
-    try {
-      const response = await this.customApi.getNamespacedCustomObject(
-        'postgresql.cnpg.io',
-        'v1',
+  private async createCluster(args: ClusterArgs) {
+    const {
+      name,
+      namespace,
+      instances = 3,
+      storageSize = "10Gi",
+      postgresVersion = "15",
+      storageClass,
+    } = args;
+
+    const clusterSpec = {
+      apiVersion: `${CNPG_GROUP}/${CNPG_VERSION}`,
+      kind: "Cluster",
+      metadata: {
+        name,
         namespace,
-        'clusters',
-        name
+      },
+      spec: {
+        instances,
+        postgresql: {
+          parameters: {
+            max_connections: "100",
+            shared_buffers: "256MB",
+            effective_cache_size: "1GB",
+          },
+        },
+        bootstrap: {
+          initdb: {
+            database: "app",
+            owner: "app",
+            secret: {
+              name: `${name}-app-user`,
+            },
+          },
+        },
+        storage: {
+          size: storageSize,
+          ...(storageClass && { storageClass }),
+        },
+        monitoring: {
+          enabled: true,
+        },
+      },
+    };
+
+    try {
+      await this.customApi.createNamespacedCustomObject(
+        CNPG_GROUP,
+        CNPG_VERSION,
+        namespace,
+        CLUSTER_PLURAL,
+        clusterSpec
       );
-
-      const cluster = response.body as any;
-      const status = cluster.status || {};
-      
-      const statusInfo = `## Cluster Status: ${name}
-
-**Phase:** ${status.phase || 'Unknown'}
-**Ready Instances:** ${status.readyInstances || 0}/${cluster.spec.instances || 'Unknown'}
-**Primary Instance:** ${status.currentPrimary || 'Unknown'}
-
-**Conditions:**
-${(status.conditions || []).map((cond: any) => 
-  `• ${cond.type}: ${cond.status} ${cond.reason ? `(${cond.reason})` : ''}`
-).join('\n')}`;
 
       return {
         content: [
           {
             type: 'text',
-            text: statusInfo
+            text: `Successfully created PostgreSQL cluster '${name}' in namespace '${namespace}' with ${instances} instances.`
+          }
+        ]
+      };
+    } catch (error) {
+      throw new Error(`Failed to create cluster: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  private async deleteCluster(name: string, namespace: string) {
+    try {
+      await this.customApi.deleteNamespacedCustomObject(
+        CNPG_GROUP,
+        CNPG_VERSION,
+        namespace,
+        CLUSTER_PLURAL,
+        name
+      );
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Successfully deleted PostgreSQL cluster '${name}' from namespace '${namespace}'.`
+          }
+        ]
+      };
+    } catch (error) {
+      throw new Error(`Failed to delete cluster: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  private async scaleCluster(name: string, namespace: string, instances: number) {
+    try {
+      // Get current cluster
+      const response = await this.customApi.getNamespacedCustomObject(
+        CNPG_GROUP,
+        CNPG_VERSION,
+        namespace,
+        CLUSTER_PLURAL,
+        name
+      );
+
+      const cluster = response.body as any;
+      cluster.spec.instances = instances;
+
+      // Update the cluster
+      await this.customApi.replaceNamespacedCustomObject(
+        CNPG_GROUP,
+        CNPG_VERSION,
+        namespace,
+        CLUSTER_PLURAL,
+        name,
+        cluster
+      );
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Successfully scaled cluster '${name}' to ${instances} instances.`
+          }
+        ]
+      };
+    } catch (error) {
+      throw new Error(`Failed to scale cluster: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  private async createBackup(args: BackupArgs) {
+    const { clusterName, namespace, backupName } = args;
+    const name = backupName || `${clusterName}-backup-${Date.now()}`;
+
+    const backupSpec = {
+      apiVersion: `${CNPG_GROUP}/${CNPG_VERSION}`,
+      kind: "Backup",
+      metadata: {
+        name,
+        namespace,
+      },
+      spec: {
+        cluster: {
+          name: clusterName,
+        },
+      },
+    };
+
+    try {
+      await this.customApi.createNamespacedCustomObject(
+        CNPG_GROUP,
+        CNPG_VERSION,
+        namespace,
+        BACKUP_PLURAL,
+        backupSpec
+      );
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Successfully created backup '${name}' for cluster '${clusterName}'.`
+          }
+        ]
+      };
+    } catch (error) {
+      throw new Error(`Failed to create backup: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  private async listBackups(namespace: string, clusterName?: string) {
+    try {
+      const response = await this.customApi.listNamespacedCustomObject(
+        CNPG_GROUP,
+        CNPG_VERSION,
+        namespace,
+        BACKUP_PLURAL
+      );
+
+      let backups = (response.body as any)?.items || [];
+
+      if (clusterName) {
+        backups = backups.filter((backup: any) =>
+          backup.spec?.cluster?.name === clusterName
+        );
+      }
+
+      const backupSummary = backups.map((backup: any) => ({
+        name: backup.metadata?.name || 'unknown',
+        cluster: backup.spec?.cluster?.name || 'unknown',
+        status: backup.status?.phase || "Unknown",
+        startedAt: backup.status?.startedAt || 'unknown',
+        completedAt: backup.status?.completedAt || 'unknown',
+      }));
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Found ${backups.length} backups:\n\n${JSON.stringify(backupSummary, null, 2)}`
+          }
+        ]
+      };
+    } catch (error) {
+      throw new Error(`Failed to list backups: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  private async getClusterStatus(name: string, namespace: string) {
+    try {
+      const response = await this.customApi.getNamespacedCustomObject(
+        CNPG_GROUP,
+        CNPG_VERSION,
+        namespace,
+        CLUSTER_PLURAL,
+        name
+      );
+
+      const cluster = response.body as any;
+      const status = cluster.status || {};
+
+      const statusInfo = {
+        phase: status.phase || "Unknown",
+        instances: cluster.spec?.instances || 0,
+        readyInstances: status.readyInstances || 0,
+        currentPrimary: status.currentPrimary || 'unknown',
+        targetPrimary: status.targetPrimary || 'unknown',
+        instancesStatus: status.instancesStatus || [],
+        conditions: status.conditions || [],
+      };
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Cluster Status for '${name}':\n\n${JSON.stringify(statusInfo, null, 2)}`
           }
         ]
       };
@@ -283,44 +584,31 @@ ${(status.conditions || []).map((cond: any) =>
 
   private async getClusterPods(name: string, namespace: string) {
     try {
+      const labelSelector = `cnpg.io/cluster=${name}`;
       const response = await this.k8sApi.listNamespacedPod(
         namespace,
         undefined,
         undefined,
         undefined,
         undefined,
-        `cnpg.io/cluster=${name}`
+        labelSelector
       );
 
-      const pods = response.body.items;
-
-      if (pods.length === 0) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `No pods found for cluster "${name}" in namespace "${namespace}"`
-            }
-          ]
-        };
-      }
-
-      const podInfo = pods.map((pod: V1Pod) => {
-        const podName = pod.metadata?.name || 'Unknown';
-        const status = pod.status?.phase || 'Unknown';
-        const ready = pod.status?.containerStatuses?.[0]?.ready ? '✅' : '❌';
-        const restarts = pod.status?.containerStatuses?.[0]?.restartCount || 0;
-        
-        return `• **${podName}**
-  - Status: ${status} ${ready}
-  - Restarts: ${restarts}`;
-      }).join('\n\n');
+      const pods = response.body.items.map(pod => ({
+        name: pod.metadata?.name || 'unknown',
+        status: pod.status?.phase || 'unknown',
+        ready: pod.status?.containerStatuses?.every(cs => cs.ready) || false,
+        restarts: pod.status?.containerStatuses?.[0]?.restartCount || 0,
+        node: pod.spec?.nodeName || 'unknown',
+        ip: pod.status?.podIP || 'unknown',
+        role: pod.metadata?.labels?.["cnpg.io/instanceRole"] || 'unknown',
+      }));
 
       return {
         content: [
           {
             type: 'text',
-            text: `## Pods for Cluster: ${name}\n\n${podInfo}`
+            text: `Pods for cluster '${name}':\n\n${JSON.stringify(pods, null, 2)}`
           }
         ]
       };
@@ -337,7 +625,5 @@ ${(status.conditions || []).map((cond: any) =>
 }
 
 // Lancer le serveur
-if (require.main === module) {
-  const server = new CNPGMCPServer();
-  server.run().catch(console.error);
-}
+const server = new CNPGMCPServer();
+server.run().catch(console.error);
