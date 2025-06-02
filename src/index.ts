@@ -16,8 +16,8 @@ import {
 
 class CNPGMCPServer {
   private server: Server;
-  private k8sApi: CoreV1Api;
-  private customApi: CustomObjectsApi;
+  private k8sApi!: CoreV1Api;
+  private customApi!: CustomObjectsApi;
 
   constructor() {
     this.server = new Server(
@@ -37,23 +37,17 @@ class CNPGMCPServer {
       kc.loadFromOptions({
         clusters: [{
           name: 'mcp-cluster',
-          cluster: {
-            server: process.env.K8S_API_URL,
-            skipTLSVerify: true // Pour simplifier, à adapter selon tes besoins
-          }
+          server: process.env.K8S_API_URL,
+          skipTLSVerify: true
         }],
         users: [{
           name: 'mcp-user',
-          user: {
-            token: process.env.K8S_TOKEN
-          }
+          token: process.env.K8S_TOKEN
         }],
         contexts: [{
           name: 'mcp-context',
-          context: {
-            cluster: 'mcp-cluster',
-            user: 'mcp-user'
-          }
+          cluster: 'mcp-cluster',
+          user: 'mcp-user'
         }],
         currentContext: 'mcp-context'
       });
@@ -127,18 +121,22 @@ class CNPGMCPServer {
       const { name, arguments: args } = request.params;
 
       try {
+        if (!args) {
+          throw new Error('Missing arguments');
+        }
+
         switch (name) {
           case 'list_clusters':
-            return await this.listClusters(args.namespace);
+            return await this.listClusters((args as any).namespace);
           
           case 'get_cluster':
-            return await this.getCluster(args.name, args.namespace);
+            return await this.getCluster((args as any).name, (args as any).namespace);
           
           case 'get_cluster_status':
-            return await this.getClusterStatus(args.name, args.namespace);
+            return await this.getClusterStatus((args as any).name, (args as any).namespace);
           
           case 'get_cluster_pods':
-            return await this.getClusterPods(args.name, args.namespace);
+            return await this.getClusterPods((args as any).name, (args as any).namespace);
           
           default:
             throw new Error(`Unknown tool: ${name}`);
