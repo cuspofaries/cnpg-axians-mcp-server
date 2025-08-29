@@ -183,3 +183,5 @@ This project is developed by Axians, a VINCI Energies brand, specializing in ICT
 ## License
 
 MIT
+
+[![MCP Badge](https://lobehub.com/badge/mcp/cuspofaries-cnpg-axians-mcp-server)](https://lobehub.com/mcp/cuspofaries-cnpg-axians-mcp-server)
