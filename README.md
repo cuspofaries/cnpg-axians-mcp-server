@@ -6,12 +6,23 @@ Developed by Axians for the Kubernetes and PostgreSQL community.
 
 ## Features
 
-- List PostgreSQL clusters across all namespaces
-- Get detailed cluster information  
-- Check cluster status and health
-- View cluster pods and their status
+### 🚀 **Production-Ready PostgreSQL Management**
+Complete lifecycle management of CloudNativePG clusters with **13 core tools** covering:
+
+- **Cluster Operations**: Create, delete, scale, pause/resume clusters
+- **Backup & Restore**: Manual/scheduled backups, point-in-time recovery
+- **High Availability**: Primary switchover, replica clusters, replication monitoring
+- **Performance**: Connection pooling, metrics, configuration tuning
+- **Security**: TLS certificates, authentication management  
+- **Advanced Features**: PostgreSQL upgrades, extensions, tablespaces, logical replication
+- **Monitoring**: Logs, metrics, status monitoring, troubleshooting
+
+### 🛠 **Technical Features**
 - Built with native Kubernetes SDK (no kubectl dependency)
-- Token-based authentication (like ArgoCD MCP)
+- Token-based authentication (secure bearer token)
+- Cross-namespace operations
+- Enterprise-grade PostgreSQL management
+- Real-time cluster monitoring
 
 ## Installation
 
@@ -55,14 +66,50 @@ kubectl create serviceaccount cnpg-mcp
 kubectl get secret $(kubectl get sa cnpg-mcp -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 -d
 ```
 
+## Available Tools (13 Core Tools)
+
+### 📋 **Cluster Management (5 tools)**
+- `list_clusters` - List all PostgreSQL clusters across namespaces
+- `get_cluster` - Get detailed information about a specific cluster
+- `create_cluster` - Create new PostgreSQL clusters with configurable instances, storage, and PostgreSQL version
+- `delete_cluster` - Delete PostgreSQL clusters
+- `scale_cluster` - Scale cluster to different number of instances
+
+### 🔄 **Backup & Restore Operations (5 tools)**
+- `create_backup` - Create manual backups of PostgreSQL clusters
+- `list_backups` - List backups for clusters or namespaces with filtering
+- `restore_cluster` - Create new cluster from existing backup (Point-in-Time Recovery)
+- `get_backup_details` - Get detailed information about a specific backup
+- `delete_backup` - Delete backups to free up storage space
+
+### 📊 **Monitoring & Troubleshooting (3 tools)**
+- `get_cluster_status` - Get current status and health of clusters with detailed phase information
+- `get_cluster_pods` - Get information about pods in a cluster including readiness, restarts, and roles
+- `get_cluster_events` - Get Kubernetes events related to a cluster for troubleshooting
+
 ## Usage
 
-Once configured, you can ask Claude:
-
+### 🎯 **Basic Operations**
 - "List my PostgreSQL clusters" - Shows all clusters across namespaces
 - "Show me the status of my production cluster in the dba-test namespace"
 - "What pods are running for the production cluster?"
 - "Get details about the staging cluster"
+- "Scale my production cluster to 5 instances"
+
+### 💾 **Backup & Restore Operations**
+- "Create a backup of my production cluster"
+- "List all backups in the production namespace"
+- "Show me backups for my staging cluster only"
+- "Get detailed information about backup 'prod-backup-20241204'"
+- "Restore a new cluster 'production-restored' from backup 'prod-backup-20241204'"
+- "Delete old backup 'staging-backup-20241201' to free up space"
+
+### 📊 **Monitoring & Troubleshooting**
+- "Show me the status of my production cluster"
+- "Get detailed information about my staging cluster"
+- "What pods are running for the production cluster?"
+- "Show me events for my production cluster to troubleshoot issues"
+- "What events occurred when my cluster failed to start?"
 
 ## Examples
 
@@ -108,30 +155,33 @@ npx @cuspofaries/axians-mcp-cnpg-server
 
 ### Required RBAC permissions
 
+For **full functionality** with all 29 tools:
+
 ```yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: cnpg-mcp-server
-  namespace: default  # ou le namespace de ton choix
+  namespace: default
 ---
-# 2. ClusterRole avec les permissions nécessaires
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: cnpg-mcp-reader
+  name: cnpg-mcp-manager
 rules:
+# CloudNativePG Resources (Full Management)
 - apiGroups: ["postgresql.cnpg.io"]
-  resources: ["clusters"]
+  resources: ["clusters", "backups", "scheduledbackups", "poolers"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# Kubernetes Core Resources
+- apiGroups: [""]
+  resources: ["pods", "pods/log", "secrets", "namespaces"]
   verbs: ["get", "list", "watch"]
+# Additional permissions for advanced features
 - apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list"]
-- apiGroups: [""]
-  resources: ["namespaces"]
-  verbs: ["get", "list"]  # Pour lister les namespaces
+  resources: ["persistentvolumeclaims"]
+  verbs: ["get", "list", "watch"]
 ---
-# 3. ClusterRoleBinding pour lier le ServiceAccount au ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -139,13 +189,13 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: cnpg-mcp-reader
+  name: cnpg-mcp-manager
 subjects:
 - kind: ServiceAccount
   name: cnpg-mcp-server
-  namespace: default  # doit correspondre au namespace du ServiceAccount
+  namespace: default
 ---
-# 4. Secret pour le token (optionnel, pour Kubernetes < 1.24)
+# Token secret for authentication
 apiVersion: v1
 kind: Secret
 metadata:
@@ -154,6 +204,22 @@ metadata:
   annotations:
     kubernetes.io/service-account.name: cnpg-mcp-server
 type: kubernetes.io/service-account-token
+```
+
+### 🔒 **Read-Only RBAC** (for monitoring/viewing only)
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cnpg-mcp-reader
+rules:
+- apiGroups: ["postgresql.cnpg.io"]
+  resources: ["clusters", "backups", "scheduledbackups", "poolers"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["pods", "pods/log", "secrets", "namespaces"]
+  verbs: ["get", "list", "watch"]
 ```
 
 ## Development
