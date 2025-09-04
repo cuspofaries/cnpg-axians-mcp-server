@@ -39,7 +39,7 @@ This release transforms the CNPG MCP Server from a basic cluster viewer into a p
 - **Enterprise Features**: Support for hibernation, upgrades, advanced replication
 
 ### 📚 **Documentation**
-- **Complete Tool Reference**: All 29 tools documented with descriptions and use cases
+- **Complete Tool Reference**: All 13 tools documented with descriptions and use cases
 - **Enhanced Usage Guide**: Practical examples for all major operations
 - **RBAC Configurations**: Both full management and read-only permission sets
 - **Advanced Examples**: Multi-environment configurations

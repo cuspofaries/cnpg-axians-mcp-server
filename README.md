@@ -155,7 +155,7 @@ npx @cuspofaries/axians-mcp-cnpg-server
 
 ### Required RBAC permissions
 
-For **full functionality** with all 29 tools:
+For **full functionality** with all 13 tools:
 
 ```yaml
 apiVersion: v1
