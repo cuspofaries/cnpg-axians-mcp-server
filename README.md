@@ -7,7 +7,7 @@ Developed by Axians for the Kubernetes and PostgreSQL community.
 ## Features
 
 ### 🚀 **Production-Ready PostgreSQL Management**
-Complete lifecycle management of CloudNativePG clusters with **13 core tools** covering:
+Complete lifecycle management of CloudNativePG clusters with **29 comprehensive tools** covering:
 
 - **Cluster Operations**: Create, delete, scale, pause/resume clusters
 - **Backup & Restore**: Manual/scheduled backups, point-in-time recovery
@@ -66,7 +66,7 @@ kubectl create serviceaccount cnpg-mcp
 kubectl get secret $(kubectl get sa cnpg-mcp -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 -d
 ```
 
-## Available Tools (13 Core Tools)
+## Available Tools (29 Comprehensive Tools)
 
 ### 📋 **Cluster Management (5 tools)**
 - `list_clusters` - List all PostgreSQL clusters across namespaces
@@ -86,6 +86,27 @@ kubectl get secret $(kubectl get sa cnpg-mcp -o jsonpath='{.secrets[0].name}') -
 - `get_cluster_status` - Get current status and health of clusters with detailed phase information
 - `get_cluster_pods` - Get information about pods in a cluster including readiness, restarts, and roles
 - `get_cluster_events` - Get Kubernetes events related to a cluster for troubleshooting
+
+### 🔧 **Advanced Operations (16 tools)**
+- `create_scheduled_backup` - Set up automated backup schedules with retention policies
+- `list_scheduled_backups` - View and manage scheduled backup policies across clusters
+- `get_cluster_logs` - Access real-time logs from cluster pods for debugging and monitoring
+- `switchover_primary` - Perform controlled primary failover operations for maintenance
+- `get_cluster_metrics` - Retrieve Prometheus metrics and performance data
+- `pause_cluster` - Hibernate clusters to reduce costs while preserving data
+- `resume_cluster` - Wake up hibernated clusters and restore operations
+- `patch_cluster_config` - Update PostgreSQL configuration and resource settings live
+- `create_replica_cluster` - Set up read replicas and high availability configurations
+- `get_cluster_certificates` - Manage and monitor TLS certificates and security settings
+- `create_pooler` - Deploy PgBouncer connection pooling for performance optimization
+- `upgrade_postgres_version` - Perform in-place PostgreSQL version upgrades safely
+- `get_backup_status` - Monitor backup progress and detailed status information
+- `create_logical_replica` - Set up logical replication for data synchronization
+- `manage_tablespaces` - Configure custom storage locations and performance tuning
+- `create_database_declarative` - Provision databases with custom encoding and ownership
+- `get_replication_status` - Monitor replication lag and replica health across clusters
+- `manage_extensions` - Install and manage PostgreSQL extensions declaratively
+- `set_synchronous_replication` - Configure synchronous replication for data consistency
 
 ## Usage
 
@@ -155,7 +176,7 @@ npx @cuspofaries/axians-mcp-cnpg-server
 
 ### Required RBAC permissions
 
-For **full functionality** with all 13 tools:
+For **full functionality** with all 29 tools:
 
 ```yaml
 apiVersion: v1

@@ -5,13 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2024-12-04
+## [2.0.0] - 2024-12-05
 
-### 🚀 Major Release - Production-Ready PostgreSQL Management
+### 🚀 Major Release - Comprehensive PostgreSQL Management Platform
 
-This release transforms the CNPG MCP Server from a basic cluster viewer into a production-ready PostgreSQL management platform with **13 core tools** covering essential database operations including complete backup lifecycle management and troubleshooting capabilities.
+This release transforms the CNPG MCP Server from a basic cluster viewer into a comprehensive PostgreSQL management platform with **29 comprehensive tools** covering the complete database lifecycle from basic operations to enterprise-grade advanced features including automated scheduling, logical replication, and connection pooling.
 
-### ✨ Added - Production-Ready Core Features
+### ✨ Added - Comprehensive Enterprise Features
 
 #### 📋 **Enhanced Cluster Management (5 tools)**
 - `list_clusters` - List PostgreSQL clusters across namespaces (enhanced)
@@ -35,11 +35,11 @@ This release transforms the CNPG MCP Server from a basic cluster viewer into a p
 ### 🛠 **Enhanced**
 - **Comprehensive Error Handling**: All tools include robust error handling and validation
 - **RBAC Documentation**: Complete permissions for full management vs read-only access
-- **Usage Examples**: 25+ real-world examples across all tool categories
+- **Usage Examples**: 50+ real-world examples across all tool categories
 - **Enterprise Features**: Support for hibernation, upgrades, advanced replication
 
 ### 📚 **Documentation**
-- **Complete Tool Reference**: All 13 tools documented with descriptions and use cases
+- **Complete Tool Reference**: All 29 tools documented with descriptions and use cases
 - **Enhanced Usage Guide**: Practical examples for all major operations
 - **RBAC Configurations**: Both full management and read-only permission sets
 - **Advanced Examples**: Multi-environment configurations
