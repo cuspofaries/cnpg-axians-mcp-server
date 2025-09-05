@@ -1,6 +1,6 @@
 {
   "name": "@cuspofaries/axians-mcp-cnpg-server",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "type": "module",
   "description": "Comprehensive MCP server for CloudNativePG PostgreSQL cluster management with 29 comprehensive tools covering complete database lifecycle including advanced operations, automated scheduling, and enterprise features by Axians",
   "main": "dist/index.js",

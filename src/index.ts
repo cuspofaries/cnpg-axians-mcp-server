@@ -768,7 +768,7 @@ class CNPGMCPServer {
         });
       }
 
-      const clusters = (response.body as any).items || [];
+      const clusters = (response.body as any)?.items || (response as any)?.body?.items || (response as any)?.items || [];
       
       if (clusters.length === 0) {
         return {
@@ -1009,7 +1009,7 @@ class CNPGMCPServer {
         plural: BACKUP_PLURAL
       });
 
-      let backups = (response.body as any)?.items || [];
+      let backups = (response.body as any)?.items || (response as any)?.body?.items || (response as any)?.items || [];
 
       if (clusterName) {
         backups = backups.filter((backup: any) =>
@@ -1082,7 +1082,8 @@ class CNPGMCPServer {
         labelSelector: labelSelector
       });
 
-      const pods = (response as any).body.items.map((pod: any) => ({
+      const items = (response as any)?.body?.items || (response as any)?.items || [];
+      const pods = items.map((pod: any) => ({
         name: pod.metadata?.name || 'unknown',
         status: pod.status?.phase || 'unknown',
         ready: pod.status?.containerStatuses?.every((cs: any) => cs.ready) || false,
@@ -1239,7 +1240,8 @@ class CNPGMCPServer {
         fieldSelector: fieldSelector
       });
 
-      const events = (response as any).body.items.map((event: any) => ({
+      const items = (response as any)?.body?.items || (response as any)?.items || [];
+      const events = items.map((event: any) => ({
         type: event.type || 'Unknown',
         reason: event.reason || 'Unknown',
         message: event.message || 'No message',
@@ -1334,7 +1336,7 @@ class CNPGMCPServer {
         plural: SCHEDULED_BACKUP_PLURAL
       });
 
-      let scheduledBackups = (response.body as any)?.items || [];
+      let scheduledBackups = (response.body as any)?.items || (response as any)?.body?.items || (response as any)?.items || [];
 
       if (clusterName) {
         scheduledBackups = scheduledBackups.filter((sb: any) =>
@@ -1379,7 +1381,8 @@ class CNPGMCPServer {
           namespace: namespace,
           labelSelector: labelSelector
         });
-        targetPods = (podsResponse as any).body.items.map((pod: any) => pod.metadata?.name || '').filter((name: any) => name);
+        const items = (podsResponse as any)?.body?.items || (podsResponse as any)?.items || [];
+        targetPods = items.map((pod: any) => pod.metadata?.name || '').filter((name: any) => name);
       }
 
       if (targetPods.length === 0) {
@@ -1485,7 +1488,7 @@ class CNPGMCPServer {
         labelSelector: labelSelector
       });
 
-      const pods = (podsResponse as any).body.items;
+      const pods = (podsResponse as any)?.body?.items || (podsResponse as any)?.items || [];
       const metrics = {
         clusterName,
         namespace,
@@ -1702,7 +1705,8 @@ class CNPGMCPServer {
         labelSelector: `cnpg.io/cluster=${clusterName}`
       });
 
-      const certificates = (secretsResponse as any).body.items
+      const items = (secretsResponse as any)?.body?.items || (secretsResponse as any)?.items || [];
+      const certificates = items
         .filter((secret: any) => secret.metadata?.name?.includes('cert'))
         .map((secret: any) => ({
           name: secret.metadata?.name,
@@ -2023,7 +2027,7 @@ class CNPGMCPServer {
       });
 
       const replicationInfo = await Promise.all(
-        (podsResponse as any).body.items.map(async (pod: any) => {
+        ((podsResponse as any)?.body?.items || (podsResponse as any)?.items || []).map(async (pod: any) => {
           try {
             // Check if this is a replica pod
             const role = pod.metadata?.labels?.['cnpg.io/instanceRole'];
