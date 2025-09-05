@@ -818,7 +818,7 @@ class CNPGMCPServer {
         name: name
       });
 
-      const cluster = response.body as any;
+      const cluster = (response.body as any) || (response as any)?.body || (response as any);
       
       return {
         content: [
@@ -934,7 +934,7 @@ class CNPGMCPServer {
         name: name
       });
 
-      const cluster = response.body as any;
+      const cluster = (response.body as any) || (response as any)?.body || (response as any);
       cluster.spec.instances = instances;
 
       // Update the cluster
@@ -1048,7 +1048,7 @@ class CNPGMCPServer {
         name: name
       });
 
-      const cluster = response.body as any;
+      const cluster = (response.body as any) || (response as any)?.body || (response as any);
       const status = cluster.status || {};
 
       const statusInfo = {
@@ -1194,7 +1194,7 @@ class CNPGMCPServer {
         name: backupName
       });
 
-      const backup = response.body as any;
+      const backup = (response.body as any) || (response as any)?.body || (response as any);
       
       return {
         content: [
@@ -1440,7 +1440,7 @@ class CNPGMCPServer {
         name: clusterName
       });
 
-      const cluster = response.body as any;
+      const cluster = (response.body as any) || (response as any)?.body || (response as any);
       const currentPrimary = cluster.status?.currentPrimary;
 
       // If targetPrimary is not specified, let CNPG choose automatically
@@ -1532,7 +1532,7 @@ class CNPGMCPServer {
         name: clusterName
       });
 
-      const cluster = response.body as any;
+      const cluster = (response.body as any) || (response as any)?.body || (response as any);
       
       // Add hibernation annotation
       if (!cluster.metadata.annotations) {
@@ -1574,7 +1574,7 @@ class CNPGMCPServer {
         name: clusterName
       });
 
-      const cluster = response.body as any;
+      const cluster = (response.body as any) || (response as any)?.body || (response as any);
       
       // Remove hibernation annotation
       if (cluster.metadata.annotations && cluster.metadata.annotations["cnpg.io/hibernation"]) {
@@ -1615,7 +1615,7 @@ class CNPGMCPServer {
         name: args.clusterName
       });
 
-      const cluster = response.body as any;
+      const cluster = (response.body as any) || (response as any)?.body || (response as any);
       
       // Apply configuration patch
       if (args.postgresqlConfig) {
@@ -1782,7 +1782,7 @@ class CNPGMCPServer {
         name: args.clusterName
       });
 
-      const cluster = response.body as any;
+      const cluster = (response.body as any) || (response as any)?.body || (response as any);
       
       // Update PostgreSQL version
       cluster.spec.imageName = `postgres:${args.postgresVersion}`;
@@ -1828,7 +1828,7 @@ class CNPGMCPServer {
         name: backupName
       });
 
-      const backup = response.body as any;
+      const backup = (response.body as any) || (response as any)?.body || (response as any);
       const status = {
         name: backup.metadata.name,
         namespace: backup.metadata.namespace,
@@ -1920,7 +1920,7 @@ class CNPGMCPServer {
         name: args.clusterName
       });
 
-      const cluster = response.body as any;
+      const cluster = (response.body as any) || (response as any)?.body || (response as any);
       
       // Add tablespace configuration
       if (!cluster.spec.tablespaces) {
@@ -1971,7 +1971,7 @@ class CNPGMCPServer {
         name: args.clusterName
       });
 
-      const cluster = response.body as any;
+      const cluster = (response.body as any) || (response as any)?.body || (response as any);
       
       // Add database configuration
       if (!cluster.spec.bootstrap) {
@@ -2071,7 +2071,7 @@ class CNPGMCPServer {
         name: clusterName
       });
 
-      const cluster = response.body as any;
+      const cluster = (response.body as any) || (response as any)?.body || (response as any);
       
       // Add extensions to bootstrap configuration
       if (!cluster.spec.bootstrap) {
@@ -2123,7 +2123,7 @@ class CNPGMCPServer {
         name: args.clusterName
       });
 
-      const cluster = response.body as any;
+      const cluster = (response.body as any) || (response as any)?.body || (response as any);
       
       // Configure synchronous replication
       if (!cluster.spec.postgresql) {
